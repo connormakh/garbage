@@ -5,6 +5,7 @@ from flask import request, jsonify
 import uuid
 import jwt
 
+
 class Company(db.Model):
     """This Class represents the company table, used for the user type company, in the admin portal"""
 
@@ -71,7 +72,6 @@ class Company(db.Model):
 
         if current_user:
             return str(jwt.encode({'public_id': current_user.public_id}, Config.SECRET, algorithm='HS256'))
-
 
     @staticmethod
     def authorize_by_email(email, password):
