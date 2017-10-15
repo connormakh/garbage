@@ -9,6 +9,7 @@ class Config(object):
     CSRF_ENABLED = True
     SECRET = os.getenv('SECRET')
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
+    MONGO_URI = os.getenv('MONGO_DATABASE_URL')
 
 
 class DevelopmentConfig(Config):
