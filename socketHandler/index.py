@@ -6,3 +6,8 @@ socketio = IOBlueprint("/socket")
 @socketio.on('connect')
 def handle_connect():
     pass
+
+
+@socketio.on('update-trash')
+def update_trash():
+    pass

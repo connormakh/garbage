@@ -6,7 +6,6 @@ import uuid
 import jwt
 
 
-
 class User(db.Model):
     """This Class represents the user table"""
 
@@ -83,14 +82,27 @@ class User(db.Model):
         current_user = User.query.filter_by(name=name, password=password).first()
 
         if current_user:
-            return str(jwt.encode({'public_id': current_user.public_id}, Config.SECRET, algorithm='HS256'))
+            return {'token': str(jwt.encode({'public_id': current_user.public_id}, Config.SECRET, algorithm='HS256')),
+                    'user': current_user.json_serialize()}
 
     @staticmethod
     def authorize_by_email(email, password):
         current_user = User.query.filter_by(email=email, password=password).first()
 
         if current_user:
-            return str(jwt.encode({'public_id': current_user.public_id}, Config.SECRET, algorithm='HS256'))
+            return {'token': str(jwt.encode({'public_id': current_user.public_id}, Config.SECRET, algorithm='HS256')),
+                    'user': current_user.json_serialize()}
+    @staticmethod
+    def signup(name, email, password, contact_number):
+        current_user = User.query.filter_by(name=name, email=email).first()
+
+        if current_user is None:
+            user = User(name, email, password, contact_number)
+            user.save()
+
+            logged_in= User.query.filter_by(email=email, password=password).first()
+            return {'token': str(jwt.encode({'public_id': logged_in.public_id}, Config.SECRET, algorithm='HS256')),
+                    'user': logged_in.json_serialize()}
 
 # JSON SERIALIZATION METHODS
 

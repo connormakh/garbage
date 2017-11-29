@@ -24,6 +24,27 @@ def add_user():
         return common.to_json({}, "Required field missing", 400)
 
 
+@router.route("/signup", methods=['POST'])
+def signup_user():
+    """route: /user/signup
+            POST: Create a new user,
+             params: name, email, password, contactNumber
+    """
+    name = str(request.data.get('name', ''))
+    email = str(request.data.get('email', ''))
+    password = str(request.data.get('password', ''))
+    contact_number = str(request.data.get('contact_number', ''))
+
+    if name and email and password and contact_number:
+        verified = User.signup(name, email, password, contact_number)
+        if verified:
+            return common.to_json({'token': verified['token'], 'user': verified['user']}, message="Signup success!",
+                                  code=200)
+        else:
+            return common.to_json({}, "User already exists", 400)
+    return common.to_json({}, "Required field missing", 400)
+
+
 @router.route("/login", methods=['POST'])
 def login_user():
     """route: /user/login
@@ -43,7 +64,8 @@ def login_user():
         return common.to_json({}, "Authorization failed!", 400)
 
     if token:
-        return common.to_json({'token': token}, "Authorization success!", 200)
+        print(token)
+        return common.to_json({'token': token['token'], 'user': token['user']}, message="Authorization success!", code=200)
         #return token
     else:
         return common.to_json({}, "Authorization failed!", 400)

@@ -17,7 +17,7 @@ socketio = SocketIO()
 
 from routes.User import router as user_router
 from routes.garbageCan import router as garbage_can_router
-from socket.index import socketio as socket_handler
+from socketHandler.index import socketio as socket_handler
 
 
 def create_app(config_name):
@@ -29,15 +29,12 @@ def create_app(config_name):
     app.register_blueprint(garbage_can_router, url_prefix="/api/garbage")
 
     socketio.init_app(app)
+    # socketio.run(app, port=5000, debug=True, use_reloader=True)
 
-    socketio.run(app, port=5001, debug=True, use_reloader=True)
-    app.register_blueprint(socket_handler)
     socket_handler.init_io(socketio)
 
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
-
-
 
     return app
