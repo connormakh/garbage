@@ -5,8 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from mongoengine import connect
 from instance.config import Config
 from flask_socketio import SocketIO
-
-
+from flask_cors import CORS
 # local import
 from instance.config import app_config
 
@@ -22,6 +21,7 @@ from socketHandler.index import socketio as socket_handler
 
 def create_app(config_name):
     app = FlaskAPI(__name__, instance_relative_config=False)
+    CORS(app)
     app.config.from_object(app_config[config_name])
     app.config.from_pyfile('../instance/config.py')
 

@@ -17,6 +17,7 @@ class User(db.Model):
     password = db.Column(db.String(255))
     email = db.Column(db.String(255))
     contact_number = db.Column(db.String(255))
+    company_name = db.Column(db.String(255))
     is_individual = db.Column(db.Boolean)
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
     date_modified = db.Column(
@@ -93,11 +94,11 @@ class User(db.Model):
             return {'token': str(jwt.encode({'public_id': current_user.public_id}, Config.SECRET, algorithm='HS256')),
                     'user': current_user.json_serialize()}
     @staticmethod
-    def signup(name, email, password, contact_number):
+    def signup(name, email, password, contact_number, company_name):
         current_user = User.query.filter_by(name=name, email=email).first()
 
         if current_user is None:
-            user = User(name, email, password, contact_number)
+            user = User(name, email, password, contact_number, company_name)
             user.save()
 
             logged_in= User.query.filter_by(email=email, password=password).first()

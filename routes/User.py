@@ -34,9 +34,10 @@ def signup_user():
     email = str(request.data.get('email', ''))
     password = str(request.data.get('password', ''))
     contact_number = str(request.data.get('contact_number', ''))
+    company_name = str(request.data.get('company_name', ''))
 
     if name and email and password and contact_number:
-        verified = User.signup(name, email, password, contact_number)
+        verified = User.signup(name, email, password, contact_number, company_name)
         if verified:
             return common.to_json({'token': verified['token'], 'user': verified['user']}, message="Signup success!",
                                   code=200)
@@ -61,14 +62,14 @@ def login_user():
     elif email:
         token = User.authorize_by_email(email, password)
     else:
-        return common.to_json({}, "Authorization failed!", 400)
+        return common.to_json({}, "Authorization failed!1", 400)
 
     if token:
         print(token)
         return common.to_json({'token': token['token'], 'user': token['user']}, message="Authorization success!", code=200)
         #return token
     else:
-        return common.to_json({}, "Authorization failed!", 400)
+        return common.to_json({}, "Authorization failed!2", 400)
 
 
 @router.route("/<user_id>", methods=['GET'])
