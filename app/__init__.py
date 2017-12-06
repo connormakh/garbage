@@ -16,6 +16,8 @@ socketio = SocketIO()
 
 from routes.User import router as user_router
 from routes.garbageCan import router as garbage_can_router
+from routes.company import router as company_router
+from routes.driver import router as driver_router
 from socketHandler.index import socketio as socket_handler
 
 
@@ -24,9 +26,10 @@ def create_app(config_name):
     CORS(app)
     app.config.from_object(app_config[config_name])
     app.config.from_pyfile('../instance/config.py')
-
     app.register_blueprint(user_router, url_prefix="/api/user")
     app.register_blueprint(garbage_can_router, url_prefix="/api/garbage")
+    app.register_blueprint(company_router, url_prefix="/api/company")
+    app.register_blueprint(driver_router, url_prefix="/api/driver")
 
     socketio.init_app(app)
     # socketio.run(app, port=5000, debug=True, use_reloader=True)

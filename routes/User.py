@@ -62,7 +62,7 @@ def login_user():
     elif email:
         token = User.authorize_by_email(email, password)
     else:
-        return common.to_json({}, "Authorization failed!1", 400)
+        return common.to_json({}, "Authorization failed!", 400)
 
     if token:
         print(token)

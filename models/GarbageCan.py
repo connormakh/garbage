@@ -11,18 +11,18 @@ class GarbageCan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     public_id = db.Column(db.String(50), unique=True)
     name = db.Column(db.String(255))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'))
     volume = db.Column(db.Float)
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
     date_modified = db.Column(
         db.DateTime, default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp())
-    user = db.relationship("User", backref="garbageCans", primaryjoin="GarbageCan.user_id==User.id")
+    company = db.relationship("Company", backref="garbageCan", primaryjoin="GarbageCan.company_id==Company.id")
 
-    def __init__(self, user_id, volume, name=""):
+    def __init__(self, company_id, volume, name=""):
         self.name = name
         self.public_id = str(uuid.uuid4())
-        self.user_id = user_id
+        self.company_id = company_id
         self.volume = volume
 
 # INSTANCE-LEVEL METHODS
@@ -48,6 +48,12 @@ class GarbageCan(db.Model):
     def get_user_garbage_cans(user_id):
         return GarbageCan.query.filter_by(user_id=user_id).all()
 
+    @staticmethod
+    def update_can_volume(can_id, volume):
+        can = GarbageCan.query.filter_by(id=can_id).first()
+        if can:
+            can.volume = volume
+            db.session.commit()
 
 
     @staticmethod

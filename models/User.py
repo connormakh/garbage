@@ -4,6 +4,8 @@ from functools import wraps
 from flask import request, jsonify
 import uuid
 import jwt
+from models.Company import Company
+
 
 
 class User(db.Model):
@@ -17,19 +19,22 @@ class User(db.Model):
     password = db.Column(db.String(255))
     email = db.Column(db.String(255))
     contact_number = db.Column(db.String(255))
-    company_name = db.Column(db.String(255))
     is_individual = db.Column(db.Boolean)
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
     date_modified = db.Column(
         db.DateTime, default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp())
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'))
+    company = db.relationship("Company", backref="user", uselist=False) # one to one. child must be defined in parent
 
-    def __init__(self, name, email, password, contact_number, is_individual=False):
+
+
+    def __init__(self, name, email, password, contact_number, company_name):
         self.name = name
         self.password = password
         self.email = email
         self.contact_number = contact_number
-        self.is_individual = is_individual
+        self.company = Company(company_name)
         self.public_id = str(uuid.uuid4())
 
 # INSTANCE-LEVEL METHODS
@@ -113,5 +118,6 @@ class User(db.Model):
             'name': self.name,
             'email': self.email,
             'contact_number': self.contact_number,
-            'type': 'Individual' if self.is_individual else 'Company'
+            'type': 'Individual' if self.is_individual else 'Company',
+            'company': self.company.json_serialize()
         }
