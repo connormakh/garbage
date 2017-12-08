@@ -30,6 +30,21 @@ export DATABASE_URL="postgresql://localhost/garbage-db"
 $ source .env
 ```
 
+### Vars
+Create a instance/vars.py file, with the following:
+```py
+FLASK_APP="garbage-backend/run.py"
+SECRET="some-very-long-string-of-random-characters-CHANGE-TO-YOUR-LIKING"
+APP_SETTINGS="development"
+DATABASE_URL="postgresql://localhost/garbage-db"
+MONGO_URL="mongodb://localhost/garbage-db"
+MAIL_SERVER="smtp.gmail.com"
+MAIL_PORT=587
+MAIL_PASSWORD="********"
+MAIL_USERNAME="garbagemanlau@gmail.com"
+
+```
+
 ### Dependancies:
 Install dependancies using pip:
 ```sh
