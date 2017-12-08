@@ -60,7 +60,10 @@ class Driver(db.Model):
         else:
             return False
 
-
+    @staticmethod
+    def delete(driver_id):
+        Driver.query.filter(Driver.public_id == driver_id).delete()
+        db.session.commit()
 
 # JSON SERIALIZATION METHODS
 

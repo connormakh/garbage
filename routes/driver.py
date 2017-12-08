@@ -43,3 +43,17 @@ def edit_driver(current_user, driver_id):
     else:
         return common.to_json({}, "Driver edit failed!", 400)
 
+
+@router.route("/delete/<driver_id>", methods=['POST'])
+@User.token_required
+def delete_driver(current_user, driver_id):
+    """route: /driver/delete
+                    POST: Edit a driver for a company,
+                     params: name, email, contact_number
+                     All params are optional except for id
+        """
+
+    Driver.delete(driver_id)
+    return common.to_json({}, "Driver deleted!", 200)
+
+
