@@ -3,3 +3,4 @@ __pycache__
 app/__pycache__
 app/__pycache__/__init__.cpython-36.pyc
 instance/__pycache__/config.cpython-36.pyc
+instance/vars.py
