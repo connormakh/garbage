@@ -4,6 +4,9 @@ from functools import wraps
 from flask import request, jsonify
 import uuid
 import jwt
+import json
+
+from models.Driver import Driver
 
 
 class Company(db.Model):
@@ -22,6 +25,8 @@ class Company(db.Model):
     date_modified = db.Column(
         db.DateTime, default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp())
+    drivers = db.relationship('Driver', backref='company', lazy=True)
+
 
     def __init__(self, name):
         self.name = name
@@ -111,5 +116,6 @@ class Company(db.Model):
             'public_id': self.public_id,
             'name': self.name,
             'country': self.country,
-            'contact_number': self.contact_number
+            'contact_number': self.contact_number,
+            'drivers': Driver.json_serialize_array(self.drivers)
         }

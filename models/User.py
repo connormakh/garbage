@@ -4,8 +4,8 @@ from functools import wraps
 from flask import request, jsonify
 import uuid
 import jwt
+import jsonpickle
 from models.Company import Company
-
 
 
 class User(db.Model):
@@ -26,8 +26,6 @@ class User(db.Model):
         onupdate=db.func.current_timestamp())
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'))
     company = db.relationship("Company", backref="user", uselist=False) # one to one. child must be defined in parent
-
-
 
     def __init__(self, name, email, password, contact_number, company_name):
         self.name = name
@@ -56,8 +54,6 @@ class User(db.Model):
             return User.query.filter_by(public_id=user_id).first()
         else:
             return User.query.all()
-
-
 
     @staticmethod
     def token_required(f):
@@ -98,6 +94,7 @@ class User(db.Model):
         if current_user:
             return {'token': str(jwt.encode({'public_id': current_user.public_id}, Config.SECRET, algorithm='HS256')),
                     'user': current_user.json_serialize()}
+
     @staticmethod
     def signup(name, email, password, contact_number, company_name):
         current_user = User.query.filter_by(name=name, email=email).first()

@@ -6,7 +6,7 @@ def to_json(data, message, code):
         'data': data,
         'status_code': code,
         'message': message
-    })
+    }), code
 
 
 
