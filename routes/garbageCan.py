@@ -2,6 +2,8 @@ from flask import request, Blueprint
 from models.User import User
 from models.GarbageCan import GarbageCan
 from util import common
+from app import db
+
 router = Blueprint('garbageCanRoutes', __name__)
 
 
@@ -13,8 +15,9 @@ def add_garbage_can(current_user):
             params:
                 name(optional): string
     """
-    can = GarbageCan(current_user.id, request.data.get('name', ''))
-    can.save()
+    can = GarbageCan(int(request.data.get('volume', '')), str(request.data.get('name', '')))
+    current_user.company.garbageCans.append(can)
+    db.session.commit()
 
     return common.to_json(can.json_serialize(), "Can successfully created", 200)
 
@@ -50,5 +53,3 @@ def edit_garbage_can(current_user):
         return common.to_json({}, "Can successfully deleted", 200)
     else:
         return common.to_json({}, "No such can", 400)
-
-

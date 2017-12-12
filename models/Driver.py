@@ -70,9 +70,10 @@ class Driver(db.Model):
     def json_serialize(self):
         return {
             'public_id': self.public_id,
-            'name': self.name,
+            'first_name': self.name.split()[0],
+            'last_name': self.name.split()[1] if len(self.name.split()) > 1 else "",
             'email': self.email,
-            'contact_number': self.contact_number
+               'contact_number': self.contact_number
         }
 
     @staticmethod

@@ -6,6 +6,7 @@ import uuid
 import jwt
 import json
 
+from models.GarbageCan import GarbageCan
 from models.Driver import Driver
 
 
@@ -26,6 +27,7 @@ class Company(db.Model):
         db.DateTime, default=db.func.current_timestamp(),
         onupdate=db.func.current_timestamp())
     drivers = db.relationship('Driver', backref='company', lazy=True)
+    garbageCans = db.relationship('GarbageCan', backref='company', lazy=True)
 
 
     def __init__(self, name):
@@ -117,5 +119,8 @@ class Company(db.Model):
             'name': self.name,
             'country': self.country,
             'contact_number': self.contact_number,
-            'drivers': Driver.json_serialize_array(self.drivers)
+            'drivers': Driver.json_serialize_array(self.drivers),
+            'garbageCans': GarbageCan.json_serialize_list(self.garbageCans),
+            'truck_count': self.truck_count,
+            'truck_volume': self.truck_volume
         }
