@@ -89,6 +89,23 @@ class Company(db.Model):
         return False
 
     @staticmethod
+    def check_if_exists(company_id):
+        company = Company.query.filter_by(public_id=company_id).first()
+
+        if company:
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def add_garbage_can(company_id, req_id, volume, latitude, longitude):
+        company = Company.query.filter_by(public_id=company_id).first()
+
+        company.garbageCans.append(GarbageCan(volume, latitude, longitude, req_id))
+        db.session.commit()
+
+
+    @staticmethod
     def token_required(f):
         @wraps(f)
         def decorated(*args, **kwargs):

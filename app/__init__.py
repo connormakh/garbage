@@ -3,6 +3,8 @@ from flask.ext.mail import Mail
 from flask_api import FlaskAPI
 from flask_sqlalchemy import SQLAlchemy
 from mongoengine import connect
+
+from coap import CoAPServer
 from instance.config import Config
 from flask_socketio import SocketIO
 from flask_cors import CORS
@@ -44,6 +46,7 @@ def create_app(config_name):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
+    CoAPServer.start_server()
 
     return app
 

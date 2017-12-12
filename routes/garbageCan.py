@@ -1,4 +1,6 @@
 from flask import request, Blueprint
+
+from models.Company import Company
 from models.User import User
 from models.GarbageCan import GarbageCan
 from util import common
@@ -38,7 +40,6 @@ def delete_garbage_can(current_user):
         return common.to_json({}, "No such can", 400)
 
 
-# TODO
 @router.route("/edit", methods=['POST'])
 @User.token_required
 def edit_garbage_can(current_user):
@@ -53,3 +54,23 @@ def edit_garbage_can(current_user):
         return common.to_json({}, "Can successfully deleted", 200)
     else:
         return common.to_json({}, "No such can", 400)
+
+
+@router.route("/register", methods=['POST'])
+def register_garbage_can():
+    """route: /garbage/register
+                POST: Register a company garbage bin
+                params:
+                    id: company_id, req_id
+        """
+    company_id = str(request.data('company_id', ''))
+    req_id = str(request.data('req_id', ''))
+    volume = str(request.data('volume', ''))
+    latitude = str(request.data('latitude', ''))
+    longitude = str(request.data('longitude', ''))
+
+    if len(company_id) > 0 and Company.check_if_exists(company_id):
+        Company.add_garbage_can(company_id, req_id, volume, latitude, longitude)
+        return common.to_json({}, "Can successfully added", 200)
+    else:
+        return common.to_json({}, "No such company", 400)
