@@ -37,8 +37,7 @@ def create_app(config_name):
     app.register_blueprint(company_router, url_prefix="/api/company")
     app.register_blueprint(driver_router, url_prefix="/api/driver")
     app.register_blueprint(request_router, url_prefix="/api/garbage_request")
-    print(app.config)
-    socketio.init_app(app)
+    # socketio.init_app(app)
     # socketio.run(app, port=5000, debug=True, use_reloader=True)
 
     socket_handler.init_io(socketio)
@@ -46,7 +45,5 @@ def create_app(config_name):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
-    CoAPServer.start_server()
-
     return app
 

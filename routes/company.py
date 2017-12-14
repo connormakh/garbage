@@ -26,14 +26,16 @@ def get_company(company_id):
 def edit_company(current_user):
     """route: /company/edit
             POST: Edit company for user,
-             params: name, country, truck_count, truck_volume
+             params: name, country, truck_count, truck_volume, latitude, longitude
     """
     name = str(request.data.get('name', ''))
     country = str(request.data.get('country', ''))
     truck_count = str(request.data.get('truck_count', ''))
     truck_volume = str(request.data.get('truck_volume', ''))
+    latitude = str(request.data.get('latitude', ''))
+    longitude = str(request.data.get('longitude', ''))
 
-    current_user.company.edit(name,truck_count,truck_volume,country)
+    current_user.company.edit(name,truck_count,truck_volume,country, latitude, longitude)
 
     return common.to_json(current_user.json_serialize(), "Company edited!", 200)
 

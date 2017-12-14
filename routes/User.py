@@ -1,5 +1,7 @@
 
 from flask import request, Blueprint
+
+from models.GarbageStatus import GarbageStatus
 from models.User import User
 from util import common
 router = Blueprint('userRoutes', __name__)
@@ -84,3 +86,18 @@ def get_users(user_id, current_user):
         return common.to_json(user.json_serialize(), "User successfully retrieved", 200)
     else:
         return common.to_json({}, "No such User", 400)
+
+
+@router.route("/collection/graph", methods=['GET'])
+@User.token_required
+def get_collection_graph(current_user):
+    """route: /user/collection/graph
+                GET: Get user garbage collection statistics
+                query params: type [y, m , d]
+        """
+    if type:
+        result = GarbageStatus.get_consumption_graph(current_user.company.public_id)
+        return common.to_json(result, "all good", 200)
+
+    else:
+        return common.to_json({}, "No param givenr", 400)

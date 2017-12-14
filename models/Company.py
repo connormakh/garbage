@@ -22,6 +22,8 @@ class Company(db.Model):
     contact_number = db.Column(db.String(255))
     truck_count = db.Column(db.Integer)
     truck_volume = db.Column(db.Integer)
+    latitude = db.Column(db.String)
+    longitude = db.Column(db.String)
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
     date_modified = db.Column(
         db.DateTime, default=db.func.current_timestamp(),
@@ -44,7 +46,7 @@ class Company(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    def edit(self, name=None, truck_count=None, truck_volume=None, country=None ):
+    def edit(self, name=None, truck_count=None, truck_volume=None, country=None, latitude=None, longitude=None):
         if name:
             self.name = name
         if truck_count:
@@ -53,6 +55,10 @@ class Company(db.Model):
             self.truck_volume = truck_volume
         if country:
             self.country = country
+        if latitude:
+            self.latitude = latitude
+        if longitude:
+            self.longitude = longitude
         db.session.commit()
 
 # STATIC METHODS
