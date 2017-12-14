@@ -52,18 +52,20 @@ class TruckRoutefinder(object):
             # Display solution.
             # Solution cost.
             print("Total distance of all routes: " + str(assignment.ObjectiveValue()) + "\n")
-
+            vehicle_routes = [None] * self.num_vehicles
             for vehicle_nbr in range(self.num_vehicles):
               index = routing.Start(vehicle_nbr)
               index_next = assignment.Value(routing.NextVar(index))
               route = ''
               route_dist = 0
               route_demand = 0
+              vehicle_routes[vehicle_nbr] = []
 
               while not routing.IsEnd(index_next):
                 node_index = routing.IndexToNode(index)
                 node_index_next = routing.IndexToNode(index_next)
                 route += str(node_index) + " -> "
+                vehicle_routes[vehicle_nbr].append(self.locations[node_index])
                 # Add the distance to the next node.
                 route_dist += dist_callback(node_index, node_index_next)
                 # Add demand.
@@ -71,13 +73,25 @@ class TruckRoutefinder(object):
                 index = index_next
                 index_next = assignment.Value(routing.NextVar(index))
 
+
               node_index = routing.IndexToNode(index)
               node_index_next = routing.IndexToNode(index_next)
               route += str(node_index) + " -> " + str(node_index_next)
+              vehicle_routes[vehicle_nbr].append(self.locations[node_index])
+              vehicle_routes[vehicle_nbr].append(self.locations[node_index_next])
+
               route_dist += dist_callback(node_index, node_index_next)
-              print("Route for vehicle " + str(vehicle_nbr) + ":\n\n" + route + "\n")
-              print("Distance of route " + str(vehicle_nbr) + ": " + str(route_dist))
-              print("Demand met by vehicle " + str(vehicle_nbr) + ": " + str(route_demand) + "\n")
+              # print("Route for vehicle " + str(vehicle_nbr) + ":\n\n" + route + "\n")
+              # print("Distance of route " + str(vehicle_nbr) + ": " + str(route_dist))
+              # print("Demand met by vehicle " + str(vehicle_nbr) + ": " + str(route_demand) + "\n")
+
+            accepted_routes = []
+            for veh in vehicle_routes:
+                print(len(veh))
+                if len(veh) > 2:
+                    accepted_routes.append(veh)
+
+            return accepted_routes
           else:
             print('No solution found.')
         else:

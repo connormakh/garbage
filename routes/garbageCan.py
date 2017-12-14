@@ -1,6 +1,7 @@
 from flask import request, Blueprint
 
 from models.Company import Company
+from models.CompanyRoutes import CompanyRoutes
 from models.GarbageCanRequest import GarbageCanRequest
 from models.GarbageStatus import GarbageStatus
 from models.User import User
@@ -8,8 +9,12 @@ from models.GarbageCan import GarbageCan
 from truckRouting.truckRouting import TruckRoutefinder
 from util import common
 from app import db
+import json
+import requests
+import googlemaps
 
 router = Blueprint('garbageCanRoutes', __name__)
+gmaps = googlemaps.Client(key='AIzaSyD0q5ip6CbYFgzcha-Io-8lBM78PmgmslE')
 
 
 @router.route("/new", methods=['POST'])
@@ -134,12 +139,12 @@ def get_company_optimal_route(current_user):
                    """
     id = current_user.company.public_id
 
-    cans = GarbageStatus.objects(company_id=id, is_full=True)
-    # cans = []
-    # cans.append(GarbageStatus.create("1", "1", 1, [33.888630, 35.495480], 50, 50, True))
-    # cans.append(GarbageStatus.create("1", "22", 1, [33.911880, 36.0135800], 50, 50, True))
-    # cans.append(GarbageStatus.create("1", "222", 1, [33.271992, 35.203487], 50, 50, True))
-    # cans.append(GarbageStatus.create("1", "2222", 1, [34.123001, 35.651928], 50, 50, True))
+    # cans = GarbageStatus.objects(company_id=id, is_full=True)
+    cans = []
+    cans.append(GarbageStatus.create("1", "1", 1, [33.888630, 35.495480], 50, 50, True))
+    cans.append(GarbageStatus.create("1", "22", 1, [33.911880, 36.0135800], 50, 50, True))
+    cans.append(GarbageStatus.create("1", "222", 1, [33.271992, 35.203487], 50, 50, True))
+    cans.append(GarbageStatus.create("1", "2222", 1, [34.123001, 35.651928], 50, 50, True))
 
     if len(cans) > 3:
         locations = []
@@ -150,16 +155,12 @@ def get_company_optimal_route(current_user):
             locations.append([float(can.location[0]), float(can.location[1])])
             demands.append(can.volume)
 
-        tr = TruckRoutefinder(locations, demands, truck_count, truck_capacity)
-        tr.find_route()
-        return common.to_json({}, "DONE", 200)
+        tr = TruckRoutefinder(locations, demands, 5, 500)
+        routes = tr.find_route()
+        if routes:
+            CompanyRoutes.create(current_user.company.public_id, routes)
+            return common.to_json(routes, "DONE", 200)
+        else:
+            return common.to_json({}, "No solution", 500)
     else:
-        return common.to_json({}, "DONE", 200)
-
-
-
-
-
-
-
-
+        return common.to_json({}, "DONE", 400)

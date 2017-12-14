@@ -1,6 +1,9 @@
 
 from flask import request, Blueprint
 
+from mailer.Mailer import Mailer
+from models.CompanyRoutes import CompanyRoutes
+from models.Driver import Driver
 from models.GarbageStatus import GarbageStatus
 from models.User import User
 from util import common
@@ -101,3 +104,26 @@ def get_collection_graph(current_user):
 
     else:
         return common.to_json({}, "No param givenr", 400)
+
+
+@router.route("/collection/send", methods=['POST'])
+@User.token_required
+def send_driver_route(current_user):
+    """route: /user/collection/send
+                    POST: Send driver to pick up garbage
+                    params: driver_id, route_id
+
+            """
+    driver_id = str(request.data.get('driver_id', ''))
+    route_id = int(request.data.get('route_id', 0))
+    driver = Driver.query.filter_by(public_id=driver_id).first()
+    crt = CompanyRoutes.objects(company_id=current_user.company.public_id).order_by('-created_at').first()
+    if crt:
+        if len(crt.routes) > route_id:
+            mailer = Mailer()
+            mailer.send_routing_message(current_user.email, driver.email, current_user.company.name, crt.routes[route_id])
+            return common.to_json({}, "DONE", 200)
+        else:
+            return common.to_json({}, "Bad route id", 400)
+    else:
+        return common.to_json({}, "No such routes", 400)
