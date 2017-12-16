@@ -118,7 +118,8 @@ def send_driver_route(current_user):
     route_id = int(request.data.get('route_id', 0))
     driver = Driver.query.filter_by(public_id=driver_id).first()
     crt = CompanyRoutes.objects(company_id=current_user.company.public_id).order_by('-created_at').first()
-    if crt:
+
+    if crt and driver:
         if len(crt.routes) > route_id:
             mailer = Mailer()
             mailer.send_routing_message(current_user.email, driver.email, current_user.company.name, crt.routes[route_id])
@@ -126,4 +127,4 @@ def send_driver_route(current_user):
         else:
             return common.to_json({}, "Bad route id", 400)
     else:
-        return common.to_json({}, "No such routes", 400)
+        return common.to_json({driver: driver}, "No such routes", 400)
