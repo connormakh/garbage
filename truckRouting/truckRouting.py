@@ -2,6 +2,7 @@ import math
 from six.moves import xrange
 from ortools.constraint_solver import pywrapcp
 from ortools.constraint_solver import routing_enums_pb2
+import operator
 
 
 def distance(x1, y1, x2, y2):
@@ -47,12 +48,14 @@ class TruckRoutefinder(object):
                                fix_start_cumul_to_zero, demand)
 
           # Solve, displays a solution if any.
+          print("eh: " +str(self.num_vehicles))
           assignment = routing.SolveWithParameters(search_parameters)
           if assignment:
             # Display solution.
             # Solution cost.
             print("Total distance of all routes: " + str(assignment.ObjectiveValue()) + "\n")
             vehicle_routes = [None] * self.num_vehicles
+            route_demands  = {}
             for vehicle_nbr in range(self.num_vehicles):
               index = routing.Start(vehicle_nbr)
               index_next = assignment.Value(routing.NextVar(index))
@@ -81,12 +84,21 @@ class TruckRoutefinder(object):
               vehicle_routes[vehicle_nbr].append(self.locations[node_index_next])
 
               route_dist += dist_callback(node_index, node_index_next)
+              route_demands[vehicle_nbr] = route_demand
               # print("Route for vehicle " + str(vehicle_nbr) + ":\n\n" + route + "\n")
               # print("Distance of route " + str(vehicle_nbr) + ": " + str(route_dist))
               # print("Demand met by vehicle " + str(vehicle_nbr) + ": " + str(route_demand) + "\n")
 
+            sorted_d = sorted(route_demands.items(), key=operator.itemgetter(0))
+            sorted_routes = [None] * self.num_vehicles
+            print("dems: " + str(route_demands))
+            print("veh: " + str(vehicle_routes))
+
+            for idx, val in enumerate(vehicle_routes):
+                sorted_routes[idx] = vehicle_routes[sorted_d[idx][0]]
+
             accepted_routes = []
-            for veh in vehicle_routes:
+            for veh in sorted_routes:
                 print(len(veh))
                 if len(veh) > 2:
                     accepted_routes.append(veh)

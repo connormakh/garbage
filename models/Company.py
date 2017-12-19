@@ -8,6 +8,7 @@ import json
 
 from models.GarbageCan import GarbageCan
 from models.Driver import Driver
+from models.GarbageStatus import GarbageStatus
 
 
 class Company(db.Model):
@@ -108,6 +109,7 @@ class Company(db.Model):
         company = Company.query.filter_by(public_id=company_id).first()
 
         company.garbageCans.append(GarbageCan(volume, latitude, longitude, req_id))
+        GarbageStatus.create(req_id, company_id, 0, [float(latitude), float(longitude)], 0, volume, False)
         db.session.commit()
 
 
@@ -145,5 +147,7 @@ class Company(db.Model):
             'drivers': Driver.json_serialize_array(self.drivers),
             'garbageCans': GarbageCan.json_serialize_list(self.garbageCans),
             'truck_count': self.truck_count,
-            'truck_volume': self.truck_volume
+            'truck_volume': self.truck_volume,
+            'latitude': self.latitude,
+            'longitude': self.longitude
         }

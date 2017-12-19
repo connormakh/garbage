@@ -1,6 +1,7 @@
 from app import db
 from flask import request, Blueprint
 from models.Driver import Driver
+from models.DriverPickup import DriverPickup
 from models.User import User
 from util import common
 
@@ -55,5 +56,17 @@ def delete_driver(current_user, driver_id):
 
     Driver.delete(driver_id)
     return common.to_json({}, "Driver deleted!", 200)
+
+
+@router.route("/activity", methods=['GET'])
+@User.token_required
+def get_driver_activity(current_user):
+    """route: /driver/activity
+                    POST: Get driver activity for a company,
+        """
+
+    drivers = DriverPickup.get_driver_usage(current_user.company.public_id)
+
+    return common.to_json(drivers, "Drivers retrieved!", 200)
 
 

@@ -13,7 +13,8 @@ from instance.config import app_config
 
 # initialize sql-alchemy, socket and mongo
 db = SQLAlchemy()  # postgres
-connect('garbage-db', host=Config.MONGO_URI)  # mongo engine connection
+
+dbm = connect('garbage-db', host=Config.MONGO_URI)  # mongo engine connection
 socketio = SocketIO()
 mail = Mail()
 
@@ -45,5 +46,6 @@ def create_app(config_name):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
+
     return app
 

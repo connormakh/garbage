@@ -12,6 +12,8 @@ from app import db
 import json
 import requests
 import googlemaps
+from mongoengine.queryset.visitor import Q
+import math
 
 router = Blueprint('garbageCanRoutes', __name__)
 gmaps = googlemaps.Client(key='AIzaSyD0q5ip6CbYFgzcha-Io-8lBM78PmgmslE')
@@ -74,7 +76,7 @@ def register_garbage_can():
     company_id = str(request.data.get('company_id', ''))
     req_id = str(request.data.get('req_id', ''))
     volume = str(request.data.get('volume', ''))
-    latitude = str(request.data.get('latitude', ''))
+    latitude = (request.data.get('latitude', ''))
     longitude = str(request.data.get('longitude', ''))
 
     if len(company_id) > 0 and Company.check_if_exists(company_id):
@@ -97,19 +99,33 @@ def update_garbage_can_contents():
     """route: /garbage/update
                     POST: Update existing garbage bin details
                     params:
-                         company_id, req_id, latitude, longitude, percentage_filled
+                         company_id, req_id, latitude, longitude, percentage_filled, predict_full, volume
             """
     company_id = str(request.data.get('company_id', ''))
     req_id = str(request.data.get('req_id', ''))
-    percentage_filled = str(request.data.get('percentage_filled', ''))
+    percentage_filled = str(request.data.get('percentage_filled', '0.0'))
     latitude = str(request.data.get('latitude', ''))
     longitude = str(request.data.get('longitude', ''))
+    volume = str(request.data.get('volume', ''))
+    predict_full = str(request.data.get('predict_full', '0'))
+    print("check: "+str(Company.check_if_exists(company_id)))
+    print("check: "+company_id)
+    print(request.data)
 
-    if company_id and req_id and percentage_filled and latitude and longitude and Company.check_if_exists(company_id):
+
+    if company_id and req_id and percentage_filled and latitude and longitude and volume and Company.check_if_exists(company_id):
         grbg_status = GarbageStatus()
+        grbg_status.company_id = company_id
         grbg_status.garbage_can_id = req_id
-        grbg_status.completion = percentage_filled
-        grbg_status.location = [latitude, longitude]
+        grbg_status.volume = volume
+        grbg_status.completion = float(percentage_filled)
+        if grbg_status.completion >= 0.8:
+            grbg_status.is_full = True
+        grbg_status.location = [float(latitude), float(longitude)]
+        if predict_full == '1' and grbg_status.completion < 0.8:
+            grbg_status.predict_full = True
+        else:
+            grbg_status.predict_full = False
         grbg_status.save()
         return common.to_json({}, "Can update successfully submitted", 200)
     else:
@@ -139,28 +155,80 @@ def get_company_optimal_route(current_user):
                    """
     id = current_user.company.public_id
 
-    # cans = GarbageStatus.objects(company_id=id, is_full=True)
-    cans = []
-    cans.append(GarbageStatus.create("1", "1", 1, [33.888630, 35.495480], 50, 50, True))
-    cans.append(GarbageStatus.create("1", "22", 1, [33.911880, 36.0135800], 50, 50, True))
-    cans.append(GarbageStatus.create("1", "222", 1, [33.271992, 35.203487], 50, 50, True))
-    cans.append(GarbageStatus.create("1", "2222", 1, [34.123001, 35.651928], 50, 50, True))
+    cans = GarbageStatus.objects.filter((Q(company_id=id) and Q(is_full=True)) or (Q(company_id=id) and Q(predict_full=True))).only('garbage_can_id').distinct('garbage_can_id')
+    bins = []
+    for id in cans:
+        bin = GarbageStatus.objects(garbage_can_id=id, company_id=current_user.company.public_id).order_by('-created_by')
+        if bin and (bin[len(bin) - 1].is_full or bin[len(bin) - 1].predict_full):
+            bins.append(bin[len(bin) - 1])
 
-    if len(cans) > 3:
+    print(current_user.company.latitude)
+    print(current_user.company.longitude)
+
+    print(cans)
+    if len(cans) > 2:
         locations = []
         demands = []
         truck_capacity = current_user.company.truck_volume
         truck_count = current_user.company.truck_count
-        for can in cans:
-            locations.append([float(can.location[0]), float(can.location[1])])
+        total_vol = 0
+        trucks_to_be_added = 0
+        for can in bins:
+            print(can.volume)
+        for can in bins:
+            locations.append([float(can.location['coordinates'][0]), float(can.location['coordinates'][1])])
             demands.append(can.volume)
+            total_vol += can.volume
 
-        tr = TruckRoutefinder(locations, demands, 5, 500)
+        trucks_total_vol = truck_capacity * truck_count
+
+        if trucks_total_vol < total_vol:
+            trucks_to_be_added = math.ceil((total_vol - trucks_total_vol) / truck_capacity)
+
+        print("locations: " + str(locations))
+        print("demands: " + str(demands))
+        print("tc: " + str(truck_count))
+        print("trucks_to_be_added: " + str(trucks_to_be_added))
+        print("truck_capacity: " + str(truck_capacity))
+        tr = TruckRoutefinder(locations, demands, truck_count + trucks_to_be_added, truck_capacity)
         routes = tr.find_route()
         if routes:
+            if trucks_to_be_added > 0:
+                routes = routes[0:truck_count]
             CompanyRoutes.create(current_user.company.public_id, routes)
             return common.to_json(routes, "DONE", 200)
         else:
-            return common.to_json({}, "No solution", 500)
+            return common.to_json({}, "No solution", 400)
     else:
-        return common.to_json({}, "DONE", 400)
+        return common.to_json({}, "No cans", 400)
+
+
+@router.route("/filled_stats/<type>", methods=['GET'])
+@User.token_required
+def get_filled_stats(current_user, type):
+    """route: /garbage/filled_stats
+        GET: get company filled stats
+        query_params: type [y, m, d]
+
+    """
+    if type == "y":
+        stats = GarbageStatus.get_filled_stats_by_year(current_user.company.public_id)
+    if type == "m":
+        stats = GarbageStatus.get_filled_stats_by_month(current_user.company.public_id)
+    if type == "d":
+        stats = GarbageStatus.get_filled_stats_by_day(current_user.company.public_id)
+
+    return common.to_json(stats, "DONE", 200)
+
+
+@router.route("/updates", methods=['GET'])
+@User.token_required
+def get_filled_stats_now(current_user):
+    """route: /garbage/updates
+        GET: get company garbage filled stats
+
+    """
+    stats = GarbageStatus.get_recent_bins(current_user.company.public_id)
+
+    return common.to_json(stats, "DONE", 200)
+
